@@ -1,181 +1,180 @@
 import React from "react";
 import "./App.css";
-import Datalist from "./components/Datalist";
 import Searchbox from "./components/Searchbox";
 import Button from "@material-ui/core/Button";
 import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import { TextField, Grid } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
+import { TextField } from "@material-ui/core";
+import Grid from "@material-ui/core/Grid";
 
-const useStyles = makeStyles(theme => ({
-  form: {
-    width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1)
-  }
-}));
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: "TO DO LIST",
+      title: "TO DO LIST App",
       act: 0,
       index: "",
       datas: [],
       searchKey: "",
-      opened: false
+      id: 1
     };
   }
 
   handleInput = e => {
+    e.preventDefault();
     this.setState({
       searchKey: e.target.value
     });
   };
 
-  // componentDidMount() {
-  //   this.name.focus();
-  // }
-
   fSubmit = e => {
+    // TO Submit Form
     e.preventDefault();
-
     let datas = this.state.datas;
+    let id = this.state.id;
     let name = this.name.value;
     let status = this.status.value;
 
     if (this.state.act === 0) {
       let data = {
         name,
-        status
+        status,
+        id
       };
-      datas.push(data); //push new data
+      datas.push(data);
+      //push new data
     } else {
-      let index = this.state.index; //set index of data to update
-      datas[index].name = name;
-      datas[index].status = status;
+      const datas = this.state.datas.filter(
+        item => item.id === this.state.index
+      );
+
+      datas[0].name = name;
+      datas[0].status = status;
+      datas[0].id = id;
+      //set data for update
     }
 
     this.setState({
       datas: datas,
-      act: 0
+      act: 0,
+      id:
+        Math.max.apply(
+          null,
+          datas.map(item => item.id)
+        ) + 1
+      //set the value of id max+1
     });
     this.refs.myForm.reset();
-    this.setState({
-      opened: false
-    });
-    //this.refs.name.focus();
   };
-  taskRemove = index => {
-    let datas = this.state.datas;
-    datas.splice(index, 1);
-    this.setState({
-      datas: datas
-    });
-
-    this.refs.myForm.reset();
-
-    // this.refs.name.focus();
-  };
+  taskRemove(id) {
+    const items = this.state.datas.filter(item => item.id !== id);
+    this.setState({ datas: items });
+  } //function to remove item
 
   taskEdit = index => {
-    let datas = this.state.datas[index];
-    this.name.value = datas.name;
-    this.status.value = datas.status;
+    const datas = this.state.datas.filter(item => item.id === index);
+    this.name.value = datas[0].name;
+    this.status.value = datas[0].status;
 
     this.setState({
       act: 1,
-      index: index,
-      opened: true
+      index: index
     });
   };
-
+  //function to set value in the form
   render() {
     let filteredtasks = this.state.datas.filter(data => {
       return data.name
         .toLowerCase()
         .includes(this.state.searchKey.toLowerCase());
     });
-
     return (
       <div className="App">
         <h2>{this.state.title}</h2>
-        <Searchbox handleInput={this.handleInput} />
-        {this.state.opened ? (
-          <Grid container direction="row" justify="center" alignItems="center">
-            <form
-              className={useStyles.form}
-              ref="myForm"
-              onSubmit={e => this.fSubmit(e)}
+
+        <div>
+          <Searchbox handleInput={this.handleInput} />
+        </div>
+        <Grid container direction="row" justify="center" alignItems="center">
+          <form ref="myForm" onSubmit={e => this.fSubmit(e)}>
+            <TextField
+              type="text"
+              inputRef={el => (this.name = el)}
+              required
+              id="outlined-basic"
+              label="Task Name"
+              variant="outlined"
+            ></TextField>
+
+            <TextField
+              type="text"
+              inputRef={el => (this.status = el)}
+              id="outlined-basic"
+              label="Task Description"
+              variant="outlined"
+              multiline={true}
+              rows={2}
+              rowsMax={4}
+              required
+            ></TextField>
+            <br />
+
+            <Button
+              variant="outlined"
+              color="primary"
+              type="submit"
+              className="btn btn-primary"
             >
-              <div>
-                <TextField
-                  id="outlined-basic"
-                  label="Task Name"
-                  variant="outlined"
-                  className="Aligncenter"
-                  type="text"
-                  inputRef={el => (this.name = el)}
-                  required
-                  placeholder="Task Name"
-                ></TextField>
-              </div>
-              <div>
-                <TextField
-                  id="outlined-basic"
-                  label="Task Description"
-                  variant="outlined"
-                  className="Aligncenter"
-                  type="text"
-                  required
-                  inputRef={el => (this.status = el)}
-                  multiline={true}
-                  rows={2}
-                  rowsMax={4}
-                ></TextField>
-              </div>
-              <div>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  type="submit"
-                  className="btn btn-primary"
-                >
-                  Save Task
-                </Button>
-              </div>
-            </form>
-          </Grid>
-        ) : (
-          <Button
-            variant="outlined"
-            color="primary"
-            type="submit"
-            className="btn btn-primary"
-            onClick={() => {
-              this.setState({ opened: true });
-            }}
-          >
-            Create Task
-          </Button>
-        )}
-        <Container fixed>
-          <Table>
+              Submit
+            </Button>
+          </form>
+        </Grid>
+        <pre>
+          <Table size="small" aria-label="a dense table">
             <TableHead>
               <TableRow>
-                <TableCell className="Setwidth">Id</TableCell>
-                <TableCell className="Setwidth">Task</TableCell>
-                <TableCell className="Setwidth">Status</TableCell>
-                <TableCell className="Setwidth">Delete</TableCell>
-                <TableCell className="Setwidth">Edit</TableCell>
+                <TableCell>Id</TableCell>
+                <TableCell>Task</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Delete</TableCell>
+                <TableCell>Edit</TableCell>
               </TableRow>
             </TableHead>
+            <TableBody>
+              {filteredtasks.map((data, index) => (
+                <TableRow key={index + 1}>
+                  <TableCell component="th" scope="row">
+                    {index + 1}
+                  </TableCell>
+                  <TableCell>{data.name}</TableCell>
+                  <TableCell>{data.status}</TableCell>
+
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => this.taskRemove(data.id)}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => this.taskEdit(data.id)}
+                    >
+                      Edit
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           </Table>
-          <Datalist filteredtasks={filteredtasks} />
-        </Container>
+        </pre>
       </div>
     );
   }
